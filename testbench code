@@ -1,0 +1,39 @@
+// Code your testbench here
+// or browse Examples
+module tb_traffic_light;
+    logic clk, rst, emergency, night_mode;
+    logic [2:0] main_road_light, side_road_light;
+    
+    traffic_light_controller uut (
+        .clk(clk), .rst(rst), .emergency(emergency), .night_mode(night_mode),
+        .main_road_light(main_road_light), .side_road_light(side_road_light)
+    );
+    
+    initial begin
+        $dumpfile("traffic_light.vcd");
+        $dumpvars(0, tb_traffic_light);
+        
+        clk = 0;
+        rst = 1;
+        emergency = 0;
+        night_mode = 0;
+        #10 rst = 0;
+        
+        repeat (5) begin
+            #20;  // Normal Mode Cycle
+        end
+        
+        emergency = 1;
+        #40;
+        emergency = 0;
+        
+        night_mode = 1;
+        #40;
+        night_mode = 0;
+        
+        #50;
+        $stop;
+    end
+    
+    always #5 clk = ~clk;
+endmodule
