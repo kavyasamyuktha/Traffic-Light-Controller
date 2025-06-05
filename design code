@@ -1,0 +1,61 @@
+// Code your design here
+`timescale 1ns / 1ps
+
+module traffic_light_controller (
+    input logic clk,
+    input logic rst,
+    input logic emergency,
+    input logic night_mode,
+    output logic [2:0] main_road_light,  // Red, Yellow, Green
+    output logic [2:0] side_road_light   // Red, Yellow, Green
+);
+    
+    typedef enum logic [2:0] {RED, GREEN, YELLOW} light_state_t;
+    typedef enum logic [2:0] {NORMAL, EMERGENCY, NIGHT} mode_t;
+    
+    mode_t mode;
+    light_state_t main_state, side_state;
+    
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst) begin
+            main_state <= RED;
+            side_state <= GREEN;
+            mode <= NORMAL;
+        end else begin
+            if (emergency) 
+                mode <= EMERGENCY;
+            else if (night_mode) 
+                mode <= NIGHT;
+            else 
+                mode <= NORMAL;
+            
+            case (mode)
+                NORMAL: begin
+                    case (main_state)
+                        RED:    begin main_state <= GREEN; side_state <= RED; $display("Main Road: GREEN, Side Road: RED"); end
+                        GREEN:  begin main_state <= YELLOW; side_state <= RED; $display("Main Road: YELLOW, Side Road: RED"); end
+                        YELLOW: begin main_state <= RED; side_state <= GREEN; $display("Main Road: RED, Side Road: GREEN"); end
+                    endcase
+                end
+                
+                EMERGENCY: begin
+                    main_state <= GREEN;
+                    side_state <= RED;
+                    $display("Emergency Mode: Main Road GREEN for Emergency Vehicles");
+                end
+                
+                NIGHT: begin
+                    main_state <= YELLOW;
+                    side_state <= YELLOW;
+                    $display("Night Mode: Both Roads Blinking YELLOW");
+                end
+            endcase
+        end
+    end
+    
+    assign main_road_light = (main_state == RED) ? 3'b100 :
+                             (main_state == YELLOW) ? 3'b010 : 3'b001;
+    assign side_road_light = (side_state == RED) ? 3'b100 :
+                             (side_state == YELLOW) ? 3'b010 : 3'b001;
+    
+endmodule
